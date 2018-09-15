@@ -207,12 +207,14 @@ public suspend fun <T> run(context: CoroutineContext, block: suspend () -> T): T
 // --------------- implementation ---------------
 
 private open class StandaloneCoroutine(
-    private val parentContext: CoroutineContext,
+    parentContext: CoroutineContext,
     active: Boolean
 ) : AbstractCoroutine<Unit>(parentContext, active) {
-    override fun handleJobException(exception: Throwable) {
-        handleCoroutineException(parentContext, exception, this)
-    }
+    override fun cancelParentWithException(exception: Throwable) =
+        handleExceptionViaParent(parentContext, exception, this)
+
+    override fun handleJobException(exception: Throwable) =
+        handleExceptionViaHandler(parentContext, exception)
 }
 
 private class LazyStandaloneCoroutine(
